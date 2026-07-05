@@ -11,7 +11,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, folders, invitations, labels, rules, users
+from app.api.routes import (
+    auth,
+    emails,
+    folders,
+    integrations,
+    invitations,
+    labels,
+    rules,
+    users,
+)
 from app.database import SessionLocal, init_db, init_mongo
 from app.services.auth_service import seed_admin
 
@@ -53,6 +62,8 @@ app.include_router(invitations.router, prefix="/api")   # Fase 3
 app.include_router(labels.router, prefix="/api")        # Fase 5
 app.include_router(folders.router, prefix="/api")       # Fase 5
 app.include_router(rules.router, prefix="/api")         # Fase 5
+app.include_router(emails.router, prefix="/api")        # Fase 7
+app.include_router(integrations.router, prefix="/api")  # Fase 7
 
 
 @app.get("/")

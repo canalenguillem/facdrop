@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.middleware import get_current_user
 from app.database import get_db
 from app.models.folder import Folder
+from app.models.rule import Rule
 from app.models.user import User
 from app.schemas.folder import DropboxEntry, FolderCreate, FolderOut, FolderUpdate
 from app.services import dropbox_service
@@ -85,7 +86,15 @@ def update_folder(
 def delete_folder(
     folder_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)
 ):
-    db.delete(_get_own_folder(db, folder_id, current))
+    folder = _get_own_folder(db, folder_id, current)
+    n_rules = db.query(Rule).filter(Rule.dropbox_folder_id == folder.id).count()
+    if n_rules:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"No puedes eliminar esta carpeta: la usan {n_rules} regla(s). "
+            "Elimina o reasigna esas reglas primero.",
+        )
+    db.delete(folder)
     db.commit()
 
 

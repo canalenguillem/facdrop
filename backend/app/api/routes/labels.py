@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.api.middleware import get_current_user
 from app.database import get_db
 from app.models.gmail_label import GmailLabel
+from app.models.rule import Rule
 from app.models.user import User
 from app.schemas.label import GmailLabelAvailable, WatchedLabelCreate, WatchedLabelOut
 from app.services import gmail_service
@@ -99,7 +100,15 @@ def _get_own_label(db: Session, label_id: int, user: User) -> GmailLabel:
 def unwatch_label(
     label_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)
 ):
-    db.delete(_get_own_label(db, label_id, current))
+    label = _get_own_label(db, label_id, current)
+    n_rules = db.query(Rule).filter(Rule.source_label_id == label.id).count()
+    if n_rules:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"No puedes dejar de vigilar esta etiqueta: la usan {n_rules} regla(s). "
+            "Elimina esas reglas primero.",
+        )
+    db.delete(label)
     db.commit()
 
 

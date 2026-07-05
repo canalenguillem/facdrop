@@ -16,10 +16,19 @@ export default function Labels() {
     }
   };
 
+  const handleUnwatch = async (id: number) => {
+    setError('');
+    try {
+      await unwatch(id);
+    } catch (err: any) {
+      setError(err.response?.data?.detail ?? 'No se pudo quitar la etiqueta');
+    }
+  };
+
   const onToggleAvailable = async (label: GmailLabelAvailable, isWatched: boolean) => {
     const existing = watched.find((w) => w.gmail_label_id === label.gmail_label_id);
     if (isWatched && existing) {
-      await unwatch(existing.id);
+      await handleUnwatch(existing.id);
     } else {
       await watch(label);
     }
@@ -72,7 +81,7 @@ export default function Labels() {
                   {w.is_active ? 'Pausar' : 'Activar'}
                 </button>
                 <button
-                  onClick={() => unwatch(w.id)}
+                  onClick={() => handleUnwatch(w.id)}
                   className="rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
                 >
                   Quitar

@@ -47,8 +47,23 @@ export default function Folders() {
   };
 
   const remove = async (id: number) => {
-    await api.delete(`/folders/${id}`);
-    await load();
+    setError('');
+    try {
+      await api.delete(`/folders/${id}`);
+      await load();
+    } catch (err: any) {
+      setError(err.response?.data?.detail ?? 'No se pudo eliminar la carpeta');
+    }
+  };
+
+  const toggleDate = async (f: Folder) => {
+    setError('');
+    try {
+      await api.put(`/folders/${f.id}`, { organize_by_date: !f.organize_by_date });
+      await load();
+    } catch (err: any) {
+      setError(err.response?.data?.detail ?? 'No se pudo actualizar la carpeta');
+    }
   };
 
   return (
@@ -128,12 +143,20 @@ export default function Folders() {
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => remove(f.id)}
-                className="rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-              >
-                Eliminar
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => toggleDate(f)}
+                  className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  {f.organize_by_date ? 'Fecha: ON' : 'Fecha: off'}
+                </button>
+                <button
+                  onClick={() => remove(f.id)}
+                  className="rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                >
+                  Eliminar
+                </button>
+              </div>
             </li>
           ))}
         </ul>

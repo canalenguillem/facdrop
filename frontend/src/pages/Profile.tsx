@@ -65,7 +65,7 @@ export default function Profile() {
         <CredentialInput
           service="dropbox"
           title="Dropbox"
-          help="Access Token de una app de Dropbox con permisos files.content.write y files.content.read."
+          help="Access Token de una app de Dropbox de acceso «Full Dropbox» (no «App folder»), con permisos files.content.write y files.content.read. Con «Full Dropbox» podrás elegir tus carpetas ya existentes."
           secretLabel="Dropbox Access Token"
           secretPlaceholder="sl.xxxxxxxx…"
           connected={status.dropbox_connected}

@@ -19,6 +19,20 @@ IMAP_HOST = "imap.gmail.com"
 # Carpetas IMAP internas de Gmail que no son etiquetas útiles para vigilar.
 _SKIP_LABELS = {"[Gmail]", "INBOX"}
 
+# Solo se descargan documentos; se ignoran imágenes (logos de firma, etc.).
+ALLOWED_DOC_EXTENSIONS = {
+    "pdf",
+    "doc", "docx", "odt", "rtf", "txt",
+    "xls", "xlsx", "xlsm", "xlsb", "ods", "csv", "tsv",
+    "ppt", "pptx", "odp",
+    "xml",
+}
+
+
+def _is_document(filename: str) -> bool:
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    return ext in ALLOWED_DOC_EXTENSIONS
+
 # Formato de cada línea de IMAP LIST: (flags) "sep" "nombre"
 _LIST_RE = re.compile(r'\((?P<flags>[^)]*)\)\s+"[^"]*"\s+(?P<name>.+)$')
 
@@ -99,6 +113,9 @@ def _extract_attachments(msg: Message) -> list[Attachment]:
             continue
         filename = _decode(part.get_filename())
         if not filename:
+            continue
+        # Solo documentos: se descartan imágenes y otros ficheros no-documento.
+        if not _is_document(filename):
             continue
         payload = part.get_payload(decode=True)
         if payload is None:

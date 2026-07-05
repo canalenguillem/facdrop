@@ -1,13 +1,9 @@
 """Servicio de Dropbox.
 
-Prueba de conexión, navegación de carpetas y subida de adjuntos. Por decisión de
-producto, los adjuntos de un correo se suben COMPRIMIDOS en un único .zip por
-correo (ver build_email_zip / upload_email_zip).
+Prueba de conexión, navegación de carpetas y subida de adjuntos. Cada adjunto se
+sube como fichero independiente a la carpeta de la regla (spec §11).
 """
-import io
 import json
-import re
-import zipfile
 
 import httpx
 
@@ -64,40 +60,13 @@ def list_folders(access_token: str, path: str = "") -> list[dict]:
 
 
 # =========================================================
-# Subida de adjuntos (spec §11) — .zip por correo (decisión de producto)
+# Subida de adjuntos (spec §11) — un fichero por adjunto
 # =========================================================
-_SAFE_NAME_RE = re.compile(r"[^\w.\- ]+")
+def upload(access_token: str, dropbox_path: str, content: bytes) -> str:
+    """Sube un fichero a Dropbox en `dropbox_path`. Devuelve la ruta final.
 
-
-def safe_filename(name: str, fallback: str = "adjuntos") -> str:
-    """Sanea un texto para usarlo como nombre de fichero."""
-    cleaned = _SAFE_NAME_RE.sub("", name).strip().strip(".")
-    return cleaned[:120] or fallback
-
-
-def build_email_zip(attachments: list) -> bytes:
-    """Empaqueta los adjuntos de UN correo en un .zip (en memoria).
-
-    `attachments` es una lista de objetos con .filename y .content (bytes)
-    (gmail_service.Attachment). Si hay nombres repetidos, se desambiguan.
+    Lanza RuntimeError si el token no es válido o la API responde con error.
     """
-    buffer = io.BytesIO()
-    seen: dict[str, int] = {}
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        for att in attachments:
-            name = att.filename or "adjunto"
-            if name in seen:
-                seen[name] += 1
-                stem, _, ext = name.rpartition(".")
-                name = f"{stem}_{seen[name]}.{ext}" if ext else f"{name}_{seen[name]}"
-            else:
-                seen[name] = 0
-            zf.writestr(name, att.content)
-    return buffer.getvalue()
-
-
-def _dropbox_upload(access_token: str, dropbox_path: str, content: bytes) -> str:
-    """Sube un fichero a Dropbox. Devuelve la ruta final. Lanza RuntimeError."""
     api_arg = {
         "path": dropbox_path,
         "mode": "add",
@@ -119,17 +88,3 @@ def _dropbox_upload(access_token: str, dropbox_path: str, content: bytes) -> str
     if resp.status_code != 200:
         raise RuntimeError(f"Dropbox respondió {resp.status_code}: {resp.text[:200]}")
     return resp.json().get("path_display", dropbox_path)
-
-
-def upload_email_zip(
-    access_token: str, folder_path: str, zip_basename: str, attachments: list
-) -> str:
-    """Comprime los adjuntos del correo y sube el .zip a la carpeta destino.
-
-    Devuelve la ruta final en Dropbox. `folder_path` es la ruta de la carpeta de
-    la regla (ej: /Empresa/Facturas/Enero2026).
-    """
-    zip_bytes = build_email_zip(attachments)
-    filename = f"{safe_filename(zip_basename)}.zip"
-    full_path = f"{folder_path.rstrip('/')}/{filename}"
-    return _dropbox_upload(access_token, full_path, zip_bytes)

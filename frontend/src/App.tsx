@@ -1,20 +1,59 @@
-/**
- * App raíz — FASE 1: solo un placeholder para verificar que el frontend arranca.
- * En la Fase 8 se añadirá el router (Login, Register, Dashboard, Labels, Rules,
- * Folders, EmailLogs, Profile, Users, Settings).
- */
-function App() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-800">
-      <h1 className="text-3xl font-bold">Fracdrop</h1>
-      <p className="mt-2 text-gray-500">
-        Esqueleto Fase 1 — el frontend arranca correctamente.
-      </p>
-      <p className="mt-1 text-sm text-gray-400">
-        API: {import.meta.env.VITE_API_URL ?? 'no configurada'}
-      </p>
-    </div>
-  );
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import Layout from './components/Layout';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Labels from './pages/Labels';
+import Folders from './pages/Folders';
+import Rules from './pages/Rules';
+import EmailLogs from './pages/EmailLogs';
+import Profile from './pages/Profile';
+import Users from './pages/Users';
+import Settings from './pages/Settings';
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center text-gray-500">Cargando…</div>;
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protegidas (con layout) */}
+          <Route
+            element={
+              <RequireAuth>
+                <Layout />
+              </RequireAuth>
+            }
+          >
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/labels" element={<Labels />} />
+            <Route path="/folders" element={<Folders />} />
+            <Route path="/rules" element={<Rules />} />
+            <Route path="/emails" element={<EmailLogs />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

@@ -73,11 +73,28 @@ Ahora en Fracdrop:
 
 ---
 
-## Paso 4 · Elige qué etiquetas de Gmail vigilar
+## Paso 4 · En Gmail: organiza tus correos con filtros y etiquetas
+
+Fracdrop **no crea ni mueve nada en Gmail**: solo lee de las etiquetas que le
+indiques. Primero organiza tú tus correos en Gmail con **filtros**.
+
+Crea **tantos filtros como grupos de mensajes** quieras clasificar, y que cada
+filtro **aplique una etiqueta** (ej. un filtro para las facturas de un proveedor
+→ etiqueta “Facturas”; otro para los albaranes → etiqueta “Albaranes”).
+
+Cómo crear un filtro en Gmail:
+
+1. En Gmail, ⚙️ → **Ver todos los ajustes** → pestaña **Filtros y direcciones bloqueadas**.
+2. Pulsa **Crear un filtro nuevo**.
+3. Define el criterio (ej. *De: proveedor@ejemplo.com*, o palabras del asunto) → **Crear filtro**.
+4. Marca **Aplicar la etiqueta** y elige o crea una etiqueta (ej. “Facturas”).
+5. Repite con cada grupo de mensajes que quieras separar.
+
+## Paso 5 · Elige qué etiquetas vigilar en Fracdrop
 
 1. Ve a **Etiquetas**.
 2. Pulsa **🔄 Sincronizar etiquetas** (trae tus etiquetas de Gmail).
-3. **Marca** las que quieres que la app revise (ej. “Facturas”, “Albaranes”).
+3. **Marca** las que quieres que la app revise (las que creaste con los filtros).
 
 > La app **solo lee** de esas etiquetas. Nunca mueve, borra ni cambia tus
 > correos.

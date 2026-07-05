@@ -12,6 +12,7 @@ import EmailLogs from './pages/EmailLogs';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/users" element={<Users />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/help" element={<Help />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

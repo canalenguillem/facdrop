@@ -15,6 +15,7 @@ const ITEMS: Item[] = [
   { to: '/emails', label: 'Historial' },
   { to: '/profile', label: 'Perfil' },
   { to: '/users', label: 'Usuarios', adminOnly: true },
+  { to: '/help', label: 'Ayuda' },
 ];
 
 export default function Sidebar() {

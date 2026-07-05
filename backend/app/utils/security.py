@@ -6,12 +6,35 @@
 """
 from datetime import datetime, timedelta, timezone
 
+from cryptography.fernet import Fernet
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+# --- Encriptación de credenciales de servicio (Fernet, spec §13.2) ---
+class CredentialEncryptor:
+    """Encripta/desencripta credenciales (Gmail App Password, Dropbox Token).
+
+    Se guardan SIEMPRE encriptadas en la tabla `users`; el frontend nunca recibe
+    la credencial en claro, solo el estado (conectado / no conectado).
+    """
+
+    def __init__(self, encryption_key: str):
+        self.cipher = Fernet(encryption_key.encode())
+
+    def encrypt(self, plaintext: str) -> str:
+        return self.cipher.encrypt(plaintext.encode()).decode()
+
+    def decrypt(self, ciphertext: str) -> str:
+        return self.cipher.decrypt(ciphertext.encode()).decode()
+
+
+# Instancia única, lista para usar en los endpoints de credenciales.
+encryptor = CredentialEncryptor(settings.ENCRYPTION_KEY)
 
 
 # --- Contraseñas ---

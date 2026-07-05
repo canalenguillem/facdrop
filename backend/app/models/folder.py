@@ -5,7 +5,7 @@ Carpeta de Dropbox donde se guardan los adjuntos. El usuario define la ruta
 """
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -19,6 +19,9 @@ class Folder(Base):
     name = Column(String(255))            # Nombre amigable (ej: "Facturas Enero 2026")
     dropbox_path = Column(String(500))    # Ruta en Dropbox (ej: /Empresa/Facturas/Enero2026)
     doc_type = Column(String(50))         # 'factura' | 'albaran' | 'otros'
+    # Si True, los adjuntos se guardan en subcarpetas por fecha de recepción:
+    # {dropbox_path}/AAAA/MM/DD/fichero.pdf
+    organize_by_date = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="folders")

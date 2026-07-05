@@ -9,8 +9,10 @@ import email as emaillib
 import imaplib
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from email.header import decode_header
 from email.message import Message
+from email.utils import parsedate_to_datetime
 
 IMAP_HOST = "imap.gmail.com"
 
@@ -111,6 +113,17 @@ def _extract_attachments(msg: Message) -> list[Attachment]:
     return attachments
 
 
+def _parse_date(msg: Message) -> datetime | None:
+    """Fecha de recepción del correo (cabecera Date), o None si no se puede."""
+    raw = msg.get("Date")
+    if not raw:
+        return None
+    try:
+        return parsedate_to_datetime(raw)
+    except (TypeError, ValueError):
+        return None
+
+
 def _email_meta(msg: Message, label_name: str) -> dict:
     """Metadatos que consume el RuleEngine (parte pura, sin IMAP)."""
     return {
@@ -119,6 +132,7 @@ def _email_meta(msg: Message, label_name: str) -> dict:
         "from": _decode(msg.get("From")),
         "subject": _decode(msg.get("Subject")),
         "has_attachments": len(_extract_attachments(msg)) > 0,
+        "date": _parse_date(msg),
     }
 
 

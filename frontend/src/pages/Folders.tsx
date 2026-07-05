@@ -10,6 +10,7 @@ export default function Folders() {
   const [name, setName] = useState('');
   const [dropboxPath, setDropboxPath] = useState('');
   const [docType, setDocType] = useState('factura');
+  const [organizeByDate, setOrganizeByDate] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -27,10 +28,16 @@ export default function Folders() {
     setError('');
     setSaving(true);
     try {
-      await api.post('/folders', { name, dropbox_path: dropboxPath, doc_type: docType });
+      await api.post('/folders', {
+        name,
+        dropbox_path: dropboxPath,
+        doc_type: docType,
+        organize_by_date: organizeByDate,
+      });
       setName('');
       setDropboxPath('');
       setDocType('factura');
+      setOrganizeByDate(false);
       await load();
     } catch (err: any) {
       setError(err.response?.data?.detail ?? 'No se pudo crear la carpeta');
@@ -83,6 +90,15 @@ export default function Folders() {
           </select>
         </div>
 
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={organizeByDate}
+            onChange={(e) => setOrganizeByDate(e.target.checked)}
+          />
+          Organizar por fecha de recepción (subcarpetas AAAA/MM/DD)
+        </label>
+
         {error && <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
         <button
@@ -105,6 +121,11 @@ export default function Folders() {
                 <div className="text-sm font-medium text-gray-800">{f.name}</div>
                 <div className="text-xs text-gray-500">
                   <code>{f.dropbox_path}</code> · {f.doc_type}
+                  {f.organize_by_date && (
+                    <span className="ml-2 rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">
+                      por fecha AAAA/MM/DD
+                    </span>
+                  )}
                 </div>
               </div>
               <button

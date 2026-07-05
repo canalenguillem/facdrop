@@ -8,12 +8,14 @@ class FolderCreate(BaseModel):
     name: str
     dropbox_path: str
     doc_type: str  # 'factura' | 'albaran' | 'otros'
+    organize_by_date: bool = False
 
 
 class FolderUpdate(BaseModel):
     name: str | None = None
     dropbox_path: str | None = None
     doc_type: str | None = None
+    organize_by_date: bool | None = None
 
 
 class FolderOut(BaseModel):
@@ -23,6 +25,7 @@ class FolderOut(BaseModel):
     name: str
     dropbox_path: str
     doc_type: str
+    organize_by_date: bool
     created_at: datetime
 
 

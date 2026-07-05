@@ -3,6 +3,7 @@ export interface Folder {
   name: string;
   dropbox_path: string;
   doc_type: string;
+  organize_by_date: boolean;
   created_at: string;
 }
 

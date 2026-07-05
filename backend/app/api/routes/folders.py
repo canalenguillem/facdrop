@@ -47,6 +47,7 @@ def create_folder(
         name=data.name,
         dropbox_path=path,
         doc_type=data.doc_type,
+        organize_by_date=data.organize_by_date,
     )
     db.add(folder)
     db.commit()

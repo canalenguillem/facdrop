@@ -70,10 +70,18 @@ def _process_single_email(
             gmail_email, gmail_pw, meta["label_id"], meta["id"]
         )
         folder = rule.dropbox_folder
+
+        # Carpeta destino: opcionalmente en subcarpetas por fecha de recepción
+        # (AAAA/MM/DD). Si el correo no trae fecha, se usa la de procesado.
+        base_path = folder.dropbox_path.rstrip("/")
+        if folder.organize_by_date:
+            email_date = meta.get("date") or datetime.now(timezone.utc)
+            base_path = f"{base_path}/{email_date.strftime('%Y/%m/%d')}"
+
         uploaded: list[str] = []
         mongo_atts: list[dict] = []
         for att in attachments:
-            path = f"{folder.dropbox_path.rstrip('/')}/{att.filename}"
+            path = f"{base_path}/{att.filename}"
             final_path = dropbox_service.upload(dropbox_token, path, att.content)
             uploaded.append(final_path)
             mongo_atts.append(

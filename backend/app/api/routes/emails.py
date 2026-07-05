@@ -7,7 +7,7 @@ Orquesta el flujo completo por usuario:
 
 La app NUNCA mueve ni borra correos en Gmail.
 """
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -124,8 +124,12 @@ def _process_single_email(
         counts["error"] += 1
 
 
-def process_user_emails(db: Session, user: User) -> dict:
-    """Procesa los correos pendientes de las etiquetas vigiladas del usuario."""
+def process_user_emails(db: Session, user: User, since=None, until=None) -> dict:
+    """Procesa los correos pendientes de las etiquetas vigiladas del usuario.
+
+    `since`/`until` (date) acotan por fecha de recepción para no procesar años
+    de historial de golpe.
+    """
     counts = {"total": 0, "procesado": 0, "sin_regla": 0, "error": 0, "skipped": 0}
 
     gmail_email = user.gmail_user_email
@@ -150,7 +154,9 @@ def process_user_emails(db: Session, user: User) -> dict:
 
     for label in labels:
         try:
-            emails = gmail_service.fetch_emails(gmail_email, gmail_pw, label.gmail_label_name)
+            emails = gmail_service.fetch_emails(
+                gmail_email, gmail_pw, label.gmail_label_name, since=since, until=until
+            )
         except Exception as exc:  # noqa: BLE001
             logger.error("No se pudo leer la etiqueta %s: %s", label.gmail_label_name, exc)
             continue
@@ -228,10 +234,19 @@ def get_email(
 
 
 @router.post("/process", response_model=ProcessResult)
-def process_emails(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
-    """Procesa los correos pendientes de las etiquetas vigiladas (spec §10)."""
+def process_emails(
+    since: date | None = None,
+    until: date | None = None,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Procesa los correos pendientes de las etiquetas vigiladas (spec §10).
+
+    Parámetros opcionales `since`/`until` (YYYY-MM-DD) acotan por fecha de
+    recepción, para no procesar años de historial de golpe.
+    """
     _require_gmail(current)
-    counts = process_user_emails(db, current)
+    counts = process_user_emails(db, current, since=since, until=until)
     return ProcessResult(**counts)
 
 

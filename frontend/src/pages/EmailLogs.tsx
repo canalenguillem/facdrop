@@ -18,6 +18,8 @@ export default function EmailLogs() {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [error, setError] = useState('');
+  const [since, setSince] = useState(`${new Date().getFullYear()}-01-01`);
+  const [until, setUntil] = useState('');
 
   const load = async () => {
     const [e, s] = await Promise.all([
@@ -37,7 +39,9 @@ export default function EmailLogs() {
     setError('');
     setResult(null);
     try {
-      const { data } = await api.post<ProcessResult>('/emails/process');
+      const { data } = await api.post<ProcessResult>('/emails/process', null, {
+        params: { since: since || undefined, until: until || undefined },
+      });
       setResult(data);
       await load();
     } catch (err: any) {
@@ -54,12 +58,31 @@ export default function EmailLogs() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Historial de correos</h1>
+        <p className="text-sm text-gray-500">
+          Correos evaluados: procesados, sin regla o con error.
+        </p>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Historial de correos</h1>
-          <p className="text-sm text-gray-500">
-            Correos evaluados: procesados, sin regla o con error.
-          </p>
+          <label className="mb-1 block text-xs font-medium text-gray-600">Desde</label>
+          <input
+            type="date"
+            value={since}
+            onChange={(e) => setSince(e.target.value)}
+            className="rounded border border-gray-300 px-2 py-1 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-600">Hasta (opcional)</label>
+          <input
+            type="date"
+            value={until}
+            onChange={(e) => setUntil(e.target.value)}
+            className="rounded border border-gray-300 px-2 py-1 text-sm"
+          />
         </div>
         <button
           onClick={process}
@@ -68,6 +91,10 @@ export default function EmailLogs() {
         >
           {processing ? 'Procesando…' : '⚙️ Procesar ahora'}
         </button>
+        <p className="w-full text-xs text-gray-400">
+          Solo se procesan los correos recibidos en el rango indicado (evita traer años de
+          historial). Deja «Hasta» vacío para procesar hasta hoy.
+        </p>
       </div>
 
       {result && (

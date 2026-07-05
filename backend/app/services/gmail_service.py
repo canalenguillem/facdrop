@@ -159,12 +159,46 @@ def _open(email: str, app_password: str) -> imaplib.IMAP4_SSL:
     return imap
 
 
+# Meses en inglés para el formato de fecha de IMAP (independiente del locale).
+_IMAP_MONTHS = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
+
+def _imap_date(d) -> str:
+    """Formatea una fecha como la espera IMAP: DD-Mon-YYYY (ej: 01-Jan-2026)."""
+    return f"{d.day:02d}-{_IMAP_MONTHS[d.month - 1]}-{d.year}"
+
+
+def _search_criteria(since=None, until=None) -> list[str]:
+    """Construye los criterios de búsqueda IMAP por fecha de recepción.
+
+    SINCE incluye el día indicado; BEFORE es exclusivo, así que sumamos 1 día
+    para que 'hasta' incluya el día completo.
+    """
+    from datetime import timedelta
+
+    crit: list[str] = []
+    if since is not None:
+        crit += ["SINCE", _imap_date(since)]
+    if until is not None:
+        crit += ["BEFORE", _imap_date(until + timedelta(days=1))]
+    return crit or ["ALL"]
+
+
 def fetch_emails(
-    email: str, app_password: str, label_name: str, limit: int = 50
+    email: str,
+    app_password: str,
+    label_name: str,
+    limit: int = 200,
+    since=None,
+    until=None,
 ) -> list[dict]:
     """Lee (readonly) los correos de una etiqueta y devuelve sus metadatos.
 
-    No marca nada como leído (SELECT readonly + BODY.PEEK).
+    Filtra por fecha de recepción en el servidor (SINCE/BEFORE) para no traer
+    años de historial. No marca nada como leído (SELECT readonly + BODY.PEEK).
     """
     imap = _open(email, app_password)
     try:
@@ -172,7 +206,7 @@ def fetch_emails(
         status, _ = imap.select(f'"{label_name}"', readonly=True)
         if status != "OK":
             return []
-        typ, data = imap.search(None, "ALL")
+        typ, data = imap.search(None, *_search_criteria(since, until))
         if typ != "OK" or not data or not data[0]:
             return []
         ids = data[0].split()[-limit:]

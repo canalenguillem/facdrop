@@ -191,14 +191,16 @@ def fetch_emails(
     email: str,
     app_password: str,
     label_name: str,
-    limit: int = 200,
+    limit: int | None = None,
     since=None,
     until=None,
 ) -> list[dict]:
     """Lee (readonly) los correos de una etiqueta y devuelve sus metadatos.
 
-    Filtra por fecha de recepción en el servidor (SINCE/BEFORE) para no traer
-    años de historial. No marca nada como leído (SELECT readonly + BODY.PEEK).
+    El volumen se acota por FECHA (SINCE/BEFORE en el servidor): dentro del rango
+    se procesan TODOS los correos, no solo los más recientes. `limit` es un tope
+    opcional de seguridad (los N más recientes del rango); por defecto, sin tope.
+    No marca nada como leído (SELECT readonly + BODY.PEEK).
     """
     imap = _open(email, app_password)
     try:
@@ -209,7 +211,9 @@ def fetch_emails(
         typ, data = imap.search(None, *_search_criteria(since, until))
         if typ != "OK" or not data or not data[0]:
             return []
-        ids = data[0].split()[-limit:]
+        ids = data[0].split()
+        if limit is not None:
+            ids = ids[-limit:]
         emails: list[dict] = []
         for num in ids:
             typ, msg_data = imap.fetch(num, "(BODY.PEEK[])")

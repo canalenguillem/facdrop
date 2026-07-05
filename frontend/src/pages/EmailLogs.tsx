@@ -92,8 +92,9 @@ export default function EmailLogs() {
           {processing ? 'Procesando…' : '⚙️ Procesar ahora'}
         </button>
         <p className="w-full text-xs text-gray-400">
-          Solo se procesan los correos recibidos en el rango indicado (evita traer años de
-          historial). Deja «Hasta» vacío para procesar hasta hoy.
+          Se procesan <strong>todos</strong> los correos recibidos en el rango indicado. Si una
+          etiqueta tiene mucho volumen, procésala <strong>mes a mes</strong> (ajusta Desde/Hasta)
+          para no saturar. Deja «Hasta» vacío para procesar hasta hoy.
         </p>
       </div>
 

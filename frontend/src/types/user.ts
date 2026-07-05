@@ -9,3 +9,14 @@ export interface User {
   dropbox_connected: boolean;
   created_at: string;
 }
+
+export interface Invitation {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  accepted_at: string | null;
+  created_at: string;
+  invite_link: string | null;
+}

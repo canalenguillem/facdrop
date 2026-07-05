@@ -12,9 +12,17 @@ from app.services import email_service, invitation_service
 router = APIRouter(prefix="/invitations", tags=["invitations"])
 
 
+def _with_link(inv: Invitation) -> Invitation:
+    """Adjunta el enlace de invitación al objeto (solo para las pendientes)."""
+    if inv.status == "pending":
+        inv.invite_link = invitation_service.build_invite_link(inv.token)
+    return inv
+
+
 @router.get("", response_model=list[InvitationOut])
 def list_invitations(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    return db.query(Invitation).order_by(Invitation.created_at.desc()).all()
+    invs = db.query(Invitation).order_by(Invitation.created_at.desc()).all()
+    return [_with_link(i) for i in invs]
 
 
 @router.post("", response_model=InvitationOut, status_code=status.HTTP_201_CREATED)
@@ -29,6 +37,7 @@ def create_invitation(
     inv = invitation_service.create_invitation(db, data.email, data.role, admin.id)
     link = invitation_service.build_invite_link(inv.token)
     email_service.send_invitation_email(inv.email, link)
+    inv.invite_link = link
     return inv
 
 
@@ -62,4 +71,5 @@ def resend_invitation(
         )
     link = invitation_service.build_invite_link(inv.token)
     email_service.send_invitation_email(inv.email, link)
+    inv.invite_link = link
     return inv

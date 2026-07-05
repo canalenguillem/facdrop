@@ -20,6 +20,8 @@ class InvitationOut(BaseModel):
     expires_at: datetime
     accepted_at: datetime | None = None
     created_at: datetime
+    # Enlace de alta (solo para el admin, útil sin SMTP para copiarlo a mano).
+    invite_link: str | None = None
 
 
 # --- Público: validar token y registrarse ---

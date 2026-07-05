@@ -32,10 +32,20 @@ def create_folder(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
+    # Crea la carpeta en Dropbox (si hay token y la ruta no es la raíz).
+    path = data.dropbox_path.strip()
+    if current.dropbox_access_token and path not in ("", "/"):
+        try:
+            dropbox_service.create_folder(
+                encryptor.decrypt(current.dropbox_access_token), path
+            )
+        except RuntimeError as exc:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Dropbox: {exc}")
+
     folder = Folder(
         user_id=current.id,
         name=data.name,
-        dropbox_path=data.dropbox_path,
+        dropbox_path=path,
         doc_type=data.doc_type,
     )
     db.add(folder)

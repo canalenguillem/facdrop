@@ -9,6 +9,7 @@ import httpx
 
 CURRENT_ACCOUNT_URL = "https://api.dropboxapi.com/2/users/get_current_account"
 LIST_FOLDER_URL = "https://api.dropboxapi.com/2/files/list_folder"
+CREATE_FOLDER_URL = "https://api.dropboxapi.com/2/files/create_folder_v2"
 UPLOAD_URL = "https://content.dropboxapi.com/2/files/upload"
 
 
@@ -57,6 +58,31 @@ def list_folders(access_token: str, path: str = "") -> list[dict]:
         for e in entries
         if e.get(".tag") == "folder"
     ]
+
+
+def create_folder(access_token: str, path: str) -> None:
+    """Crea una carpeta en Dropbox (idempotente).
+
+    Dropbox crea también las carpetas padre. Si ya existe (409 conflict) se
+    considera OK. Lanza RuntimeError en otros errores.
+    """
+    resp = httpx.post(
+        CREATE_FOLDER_URL,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+        json={"path": path, "autorename": False},
+        timeout=20,
+    )
+    if resp.status_code == 200:
+        return
+    if resp.status_code == 409:
+        # Ya existe (u otro conflicto de ruta): idempotente, lo damos por bueno.
+        return
+    if resp.status_code == 401:
+        raise RuntimeError("Token de Dropbox inválido o expirado.")
+    raise RuntimeError(f"Dropbox respondió {resp.status_code}: {resp.text[:200]}")
 
 
 # =========================================================

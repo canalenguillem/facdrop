@@ -25,10 +25,11 @@ Si el enlace dice que ha caducado, pide al administrador que te lo reenvíe.
 La app necesita una **“Contraseña de aplicación”** de Google (no tu contraseña
 normal). Para generarla:
 
-1. Entra en https://myaccount.google.com/security
-2. Activa la **Verificación en dos pasos** (si no la tienes ya).
-3. Busca **“Contraseñas de aplicaciones”** y crea una nueva para “Correo”.
-4. Google te dará **16 letras** (algo como `abcd efgh ijkl mnop`). Cópialas.
+1. Activa la **Verificación en dos pasos** en https://myaccount.google.com/security
+   (si no la tienes ya). Es imprescindible.
+2. Ve directamente a https://myaccount.google.com/apppasswords y crea una
+   contraseña de aplicación para “Correo”.
+3. Google te dará **16 letras** (algo como `abcd efgh ijkl mnop`). Cópialas.
 
 Ahora en Fracdrop:
 

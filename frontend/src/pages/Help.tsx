@@ -74,9 +74,8 @@ export default function Help() {
       <Section n={3} title="Conecta tu Gmail">
         <p>La app necesita una <strong>Contraseña de aplicación</strong> de Google (no tu contraseña normal):</p>
         <ol className="list-decimal space-y-1 pl-5">
-          <li>Entra en <Ext href="https://myaccount.google.com/security">myaccount.google.com/security</Ext>.</li>
-          <li>Activa la <strong>Verificación en dos pasos</strong>.</li>
-          <li>Busca <strong>Contraseñas de aplicaciones</strong> y crea una para «Correo». Copia las 16 letras.</li>
+          <li>Activa la <strong>Verificación en dos pasos</strong> en <Ext href="https://myaccount.google.com/security">myaccount.google.com/security</Ext> (si aún no la tienes). Es imprescindible.</li>
+          <li>Ve a <Ext href="https://myaccount.google.com/apppasswords">myaccount.google.com/apppasswords</Ext> y crea una contraseña de aplicación para «Correo». Copia las 16 letras.</li>
           <li>En <strong>Perfil → Gmail</strong>: pon tu dirección y pega la contraseña → <strong>Guardar</strong> → <strong>Probar conexión</strong> (debe salir ✅).</li>
         </ol>
       </Section>

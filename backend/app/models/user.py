@@ -6,7 +6,7 @@ ve el estado (`*_connected`), jamás la credencial.
 """
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -31,8 +31,10 @@ class User(Base):
     gmail_last_tested = Column(DateTime, nullable=True)
     gmail_test_status = Column(String(50), nullable=True)  # 'success' | 'failed'
 
-    # Credenciales Dropbox (guardadas en el perfil, encriptadas)
-    dropbox_access_token = Column(String(500), nullable=True)  # Encriptado
+    # Credenciales Dropbox (guardadas en el perfil, encriptadas).
+    # TEXT (no String(500)): los tokens de Dropbox con scopes, una vez
+    # encriptados con Fernet, superan holgadamente los 500 caracteres.
+    dropbox_access_token = Column(Text, nullable=True)  # Encriptado
     dropbox_connected = Column(Boolean, default=False)
     dropbox_connected_at = Column(DateTime, nullable=True)
     dropbox_last_tested = Column(DateTime, nullable=True)

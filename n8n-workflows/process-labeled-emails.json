@@ -1,0 +1,51 @@
+{
+  "name": "Procesar Correos de Etiquetas Vigiladas",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes",
+              "value": 15
+            }
+          ]
+        }
+      },
+      "name": "Cron cada 15 min",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8000/api/emails/process",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "name": "Procesar pendientes (por usuario)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "notes": "El backend recorre las etiquetas vigiladas, aplica reglas y sube a Dropbox"
+    }
+  ],
+  "connections": {
+    "Cron cada 15 min": {
+      "main": [
+        [
+          {
+            "node": "Procesar pendientes (por usuario)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": []
+}

@@ -34,7 +34,10 @@ class User(Base):
     # Credenciales Dropbox (guardadas en el perfil, encriptadas).
     # TEXT (no String(500)): los tokens de Dropbox con scopes, una vez
     # encriptados con Fernet, superan holgadamente los 500 caracteres.
-    dropbox_access_token = Column(Text, nullable=True)  # Encriptado
+    dropbox_access_token = Column(Text, nullable=True)   # Encriptado (método token pegado)
+    # Refresh token OAuth (acceso permanente): no caduca; con él se obtienen
+    # access tokens frescos cuando hacen falta. Encriptado.
+    dropbox_refresh_token = Column(Text, nullable=True)
     dropbox_connected = Column(Boolean, default=False)
     dropbox_connected_at = Column(DateTime, nullable=True)
     dropbox_last_tested = Column(DateTime, nullable=True)

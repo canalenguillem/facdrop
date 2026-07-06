@@ -12,7 +12,6 @@ from app.models.rule import Rule
 from app.models.user import User
 from app.schemas.folder import DropboxEntry, FolderCreate, FolderOut, FolderUpdate
 from app.services import dropbox_service
-from app.utils.security import encryptor
 
 router = APIRouter(prefix="/folders", tags=["folders"])
 
@@ -33,13 +32,12 @@ def create_folder(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
-    # Crea la carpeta en Dropbox (si hay token y la ruta no es la raíz).
+    # Crea la carpeta en Dropbox (si hay Dropbox conectado y no es la raíz).
     path = data.dropbox_path.strip()
-    if current.dropbox_access_token and path not in ("", "/"):
+    if dropbox_service.user_has_dropbox(current) and path not in ("", "/"):
         try:
-            dropbox_service.create_folder(
-                encryptor.decrypt(current.dropbox_access_token), path
-            )
+            token = dropbox_service.get_user_access_token(current)
+            dropbox_service.create_folder(token, path)
         except RuntimeError as exc:
             raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Dropbox: {exc}")
 
@@ -103,14 +101,13 @@ def browse_dropbox(
     path: str = "", current: User = Depends(get_current_user)
 ):
     """Navega carpetas reales de Dropbox ("" = raíz)."""
-    if not current.dropbox_access_token:
+    if not dropbox_service.user_has_dropbox(current):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            "Configura primero tu token de Dropbox en el perfil.",
+            "Conecta primero tu Dropbox en el perfil.",
         )
     try:
-        return dropbox_service.list_folders(
-            encryptor.decrypt(current.dropbox_access_token), path
-        )
+        token = dropbox_service.get_user_access_token(current)
+        return dropbox_service.list_folders(token, path)
     except RuntimeError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc))

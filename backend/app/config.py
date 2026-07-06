@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     SMTP_FROM: str = "Fracdrop <no-reply@fracdrop.app>"
 
+    # Dropbox OAuth (app compartida). Si están configuradas, se ofrece el botón
+    # "Conectar con Dropbox" (acceso permanente vía refresh token).
+    DROPBOX_APP_KEY: str | None = None
+    DROPBOX_APP_SECRET: str | None = None
+
     # extra="ignore": no fallar si el entorno trae variables que aún no usamos.
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

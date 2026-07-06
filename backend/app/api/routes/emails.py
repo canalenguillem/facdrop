@@ -134,11 +134,11 @@ def process_user_emails(db: Session, user: User, since=None, until=None) -> dict
 
     gmail_email = user.gmail_user_email
     gmail_pw = encryptor.decrypt(user.gmail_app_password)
-    dropbox_token = (
-        encryptor.decrypt(user.dropbox_access_token)
-        if user.dropbox_access_token
-        else None
-    )
+    try:
+        dropbox_token = dropbox_service.get_user_access_token(user)
+    except RuntimeError as exc:
+        logger.error("No se pudo obtener el token de Dropbox: %s", exc)
+        dropbox_token = None
 
     labels = (
         db.query(GmailLabel)

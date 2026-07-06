@@ -6,6 +6,7 @@ export interface CredentialStatus {
   dropbox_connected: boolean;
   dropbox_last_tested: string | null;
   dropbox_test_status: string | null;
+  dropbox_oauth_available: boolean;
 }
 
 export interface CredentialTestResult {

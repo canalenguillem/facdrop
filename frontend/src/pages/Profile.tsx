@@ -8,6 +8,7 @@ import {
   testDropbox,
   removeGmail,
   removeDropbox,
+  getDropboxAuthorizeUrl,
 } from '../services/credentials';
 
 export default function Profile() {
@@ -35,6 +36,23 @@ export default function Profile() {
       <p className="mb-4 text-sm text-gray-500">
         Se guardan encriptadas; la app nunca las muestra en claro, solo el estado de conexión.
       </p>
+
+      {status.dropbox_oauth_available && (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="text-sm text-blue-900">
+            <strong>Recomendado:</strong> conecta Dropbox de forma permanente (no caduca). No hace
+            falta crear apps ni pegar tokens.
+          </div>
+          <button
+            onClick={async () => {
+              window.location.href = await getDropboxAuthorizeUrl();
+            }}
+            className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          >
+            {status.dropbox_connected ? 'Reconectar Dropbox' : 'Conectar con Dropbox'}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <CredentialInput

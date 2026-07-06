@@ -69,6 +69,8 @@ class CredentialStatus(BaseModel):
     dropbox_connected: bool
     dropbox_last_tested: datetime | None = None
     dropbox_test_status: str | None = None
+    # True si el servidor tiene configurado OAuth de Dropbox (botón "Conectar").
+    dropbox_oauth_available: bool = False
 
 
 class CredentialTestResult(BaseModel):

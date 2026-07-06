@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
+import DropboxCallback from './pages/DropboxCallback';
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -33,6 +34,7 @@ export default function App() {
           {/* Públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dropbox/callback" element={<DropboxCallback />} />
 
           {/* Protegidas (con layout) */}
           <Route

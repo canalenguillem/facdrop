@@ -83,6 +83,7 @@ def _now():
 
 @router.get("/me/credentials", response_model=CredentialStatus)
 def get_credentials_status(current: User = Depends(get_current_user)):
+    current.dropbox_oauth_available = dropbox_service.oauth_enabled()
     return current
 
 
@@ -140,11 +141,13 @@ def test_gmail_credential(
 def test_dropbox_credential(
     db: Session = Depends(get_db), current: User = Depends(get_current_user)
 ):
-    if not current.dropbox_access_token:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No hay credencial de Dropbox guardada")
-    ok, err = dropbox_service.test_connection(
-        encryptor.decrypt(current.dropbox_access_token)
-    )
+    if not dropbox_service.user_has_dropbox(current):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No hay Dropbox conectado")
+    try:
+        token = dropbox_service.get_user_access_token(current)
+        ok, err = dropbox_service.test_connection(token)
+    except RuntimeError as exc:
+        ok, err = False, str(exc)
     result = "success" if ok else "failed"
     current.dropbox_last_tested = _now()
     current.dropbox_test_status = result
@@ -174,11 +177,53 @@ def delete_dropbox_credential(
     db: Session = Depends(get_db), current: User = Depends(get_current_user)
 ):
     current.dropbox_access_token = None
+    current.dropbox_refresh_token = None
     current.dropbox_connected = False
     current.dropbox_connected_at = None
     current.dropbox_last_tested = None
     current.dropbox_test_status = None
     _log_credential(db, current.id, "dropbox", "removed")
+    db.commit()
+    db.refresh(current)
+    return current
+
+
+# --- Dropbox OAuth (acceso permanente vía refresh token) ---
+@router.get("/me/credentials/dropbox/authorize-url")
+def dropbox_authorize_url(
+    redirect_uri: str, current: User = Depends(get_current_user)
+):
+    """Devuelve la URL a la que redirigir para autorizar Dropbox (OAuth)."""
+    if not dropbox_service.oauth_enabled():
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "OAuth de Dropbox no configurado en el servidor (DROPBOX_APP_KEY/SECRET).",
+        )
+    return {"url": dropbox_service.build_authorize_url(redirect_uri)}
+
+
+@router.post("/me/credentials/dropbox/connect", response_model=CredentialStatus)
+def dropbox_oauth_connect(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Canjea el 'code' de OAuth por un refresh token y lo guarda (permanente)."""
+    code = payload.get("code")
+    redirect_uri = payload.get("redirect_uri")
+    if not code or not redirect_uri:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Faltan 'code' o 'redirect_uri'")
+    try:
+        refresh = dropbox_service.exchange_code(code, redirect_uri)
+    except RuntimeError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
+
+    action = "updated" if current.dropbox_refresh_token else "added"
+    current.dropbox_refresh_token = encryptor.encrypt(refresh)
+    current.dropbox_access_token = None  # se usa el refresh token de ahora en adelante
+    current.dropbox_connected = True
+    current.dropbox_connected_at = _now()
+    _log_credential(db, current.id, "dropbox", action)
     db.commit()
     db.refresh(current)
     return current

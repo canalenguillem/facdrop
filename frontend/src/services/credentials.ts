@@ -43,3 +43,23 @@ export async function removeDropbox(): Promise<CredentialStatus> {
   const { data } = await api.delete<CredentialStatus>('/users/me/credentials/dropbox');
   return data;
 }
+
+// --- Dropbox OAuth (acceso permanente) ---
+export function dropboxRedirectUri(): string {
+  return `${window.location.origin}/dropbox/callback`;
+}
+
+export async function getDropboxAuthorizeUrl(): Promise<string> {
+  const { data } = await api.get<{ url: string }>('/users/me/credentials/dropbox/authorize-url', {
+    params: { redirect_uri: dropboxRedirectUri() },
+  });
+  return data.url;
+}
+
+export async function connectDropbox(code: string): Promise<CredentialStatus> {
+  const { data } = await api.post<CredentialStatus>('/users/me/credentials/dropbox/connect', {
+    code,
+    redirect_uri: dropboxRedirectUri(),
+  });
+  return data;
+}

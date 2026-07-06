@@ -101,7 +101,8 @@ services:
       dockerfile: Dockerfile
     container_name: react-correos
     environment:
-      - VITE_API_URL=http://localhost:${BACKEND_HOST_PORT:-18080}
+      # En local: http://localhost:18080. En dominio: https://api-facdrop.tramuntana.dev
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:18080}
     ports:
       - "${FRONTEND_HOST_PORT:-15173}:5173"
     depends_on:

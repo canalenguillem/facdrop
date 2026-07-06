@@ -33,6 +33,53 @@ def _is_document(filename: str) -> bool:
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     return ext in ALLOWED_DOC_EXTENSIONS
 
+
+# Nombres de fichero entrecomillados dentro del BODYSTRUCTURE de IMAP.
+_FILENAME_RE = re.compile(rb'"([^"]*\.[A-Za-z0-9]{1,6})"')
+
+
+def _bodystructure_has_document(descriptor: bytes) -> bool:
+    """Detecta si un correo trae un documento mirando solo su BODYSTRUCTURE.
+
+    Evita descargar el correo entero: el BODYSTRUCTURE (que viene en la línea de
+    descripción del FETCH) ya lista los nombres/tipos de los adjuntos. Solo se usa
+    como respaldo si el filtro de Gmail (X-GM-RAW) no está disponible.
+    """
+    if not descriptor:
+        return False
+    for m in _FILENAME_RE.finditer(descriptor):
+        name = _decode(m.group(1).decode(errors="replace"))
+        if _is_document(name):
+            return True
+    return False
+
+
+# Búsqueda de Gmail (X-GM-RAW) para traer SOLO correos con documento adjunto.
+_DOC_GM_QUERY = "has:attachment (" + " OR ".join(
+    f"filename:{e}" for e in sorted(ALLOWED_DOC_EXTENSIONS)
+) + ")"
+
+
+def _search_document_emails(imap, since, until):
+    """Devuelve (ids, docs_guaranteed) de correos con documento en el rango.
+
+    Usa el filtro de Gmail (X-GM-RAW) para que el servidor descarte los correos
+    sin documento (mucho más rápido y sin descargar cuerpos). Si el servidor no
+    soporta X-GM-RAW, cae a búsqueda por fecha y detección por BODYSTRUCTURE.
+    """
+    date_crit = [c for c in _search_criteria(since, until) if c != "ALL"]
+    try:
+        typ, data = imap.search(None, *date_crit, "X-GM-RAW", f'"{_DOC_GM_QUERY}"')
+        if typ == "OK":
+            return (data[0].split() if data and data[0] else []), True
+    except imaplib.IMAP4.error:
+        pass
+    # Respaldo (no-Gmail): solo por fecha; el documento se detecta por estructura.
+    typ, data = imap.search(None, *(date_crit or ["ALL"]))
+    if typ != "OK":
+        return [], False
+    return (data[0].split() if data and data[0] else []), False
+
 # Formato de cada línea de IMAP LIST: (flags) "sep" "nombre"
 _LIST_RE = re.compile(r'\((?P<flags>[^)]*)\)\s+"[^"]*"\s+(?P<name>.+)$')
 
@@ -141,14 +188,20 @@ def _parse_date(msg: Message) -> datetime | None:
         return None
 
 
-def _email_meta(msg: Message, label_name: str) -> dict:
-    """Metadatos que consume el RuleEngine (parte pura, sin IMAP)."""
+def _email_meta(msg: Message, label_name: str, has_attachments: bool | None = None) -> dict:
+    """Metadatos que consume el RuleEngine.
+
+    Si `has_attachments` viene dado (calculado del BODYSTRUCTURE, sin descargar el
+    cuerpo), se usa; si no, se calcula a partir del mensaje completo.
+    """
+    if has_attachments is None:
+        has_attachments = len(_extract_attachments(msg)) > 0
     return {
         "id": _decode(msg.get("Message-ID")).strip(),
         "label_id": label_name,
         "from": _decode(msg.get("From")),
         "subject": _decode(msg.get("Subject")),
-        "has_attachments": len(_extract_attachments(msg)) > 0,
+        "has_attachments": has_attachments,
         "date": _parse_date(msg),
     }
 
@@ -208,19 +261,29 @@ def fetch_emails(
         status, _ = imap.select(f'"{label_name}"', readonly=True)
         if status != "OK":
             return []
-        typ, data = imap.search(None, *_search_criteria(since, until))
-        if typ != "OK" or not data or not data[0]:
+        # El servidor descarta ya los correos sin documento (Gmail X-GM-RAW).
+        ids, docs_guaranteed = _search_document_emails(imap, since, until)
+        if not ids:
             return []
-        ids = data[0].split()
         if limit is not None:
             ids = ids[-limit:]
+
         emails: list[dict] = []
-        for num in ids:
-            typ, msg_data = imap.fetch(num, "(BODY.PEEK[])")
-            if typ != "OK" or not msg_data or not msg_data[0]:
+        # Se piden las cabeceras + estructura en lotes (una petición por lote, no
+        # una por correo): mucho más rápido. NO se descarga el cuerpo.
+        chunk = 400
+        for i in range(0, len(ids), chunk):
+            batch = b",".join(ids[i : i + chunk])
+            typ, msg_data = imap.fetch(batch, "(BODY.PEEK[HEADER] BODYSTRUCTURE)")
+            if typ != "OK" or not msg_data:
                 continue
-            raw = msg_data[0][1]
-            emails.append(_email_meta(emaillib.message_from_bytes(raw), label_name))
+            for item in msg_data:
+                if not isinstance(item, tuple) or len(item) < 2:
+                    continue
+                descriptor, header_bytes = item[0], item[1]
+                msg = emaillib.message_from_bytes(header_bytes)
+                has_doc = True if docs_guaranteed else _bodystructure_has_document(descriptor)
+                emails.append(_email_meta(msg, label_name, has_attachments=has_doc))
         return emails
     finally:
         try:

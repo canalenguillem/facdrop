@@ -29,7 +29,7 @@ export default function Users() {
   const noticeFor = (inv: Invitation) =>
     inv.email_sent
       ? `Invitación enviada por email a ${inv.email}.`
-      : `Invitación creada, pero el email no se pudo enviar (SMTP no configurado). Usa «Copiar enlace».`;
+      : `Invitación creada, pero no se pudo enviar el email (revisa la config SMTP del servidor). Mientras tanto, usa «Copiar enlace».`;
 
   const invite = async (e: FormEvent) => {
     e.preventDefault();

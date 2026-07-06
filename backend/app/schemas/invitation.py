@@ -22,6 +22,8 @@ class InvitationOut(BaseModel):
     created_at: datetime
     # Enlace de alta (solo para el admin, útil sin SMTP para copiarlo a mano).
     invite_link: str | None = None
+    # True/False si se acaba de intentar enviar por email; None si no aplica.
+    email_sent: bool | None = None
 
 
 # --- Público: validar token y registrarse ---

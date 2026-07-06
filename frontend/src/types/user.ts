@@ -19,4 +19,5 @@ export interface Invitation {
   accepted_at: string | null;
   created_at: string;
   invite_link: string | null;
+  email_sent: boolean | null;
 }

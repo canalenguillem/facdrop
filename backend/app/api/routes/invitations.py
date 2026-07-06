@@ -36,7 +36,7 @@ def create_invitation(
 
     inv = invitation_service.create_invitation(db, data.email, data.role, admin.id)
     link = invitation_service.build_invite_link(inv.token)
-    email_service.send_invitation_email(inv.email, link)
+    inv.email_sent = email_service.send_invitation_email(inv.email, link)
     inv.invite_link = link
     return inv
 
@@ -70,6 +70,6 @@ def resend_invitation(
             "Solo se pueden reenviar invitaciones pendientes",
         )
     link = invitation_service.build_invite_link(inv.token)
-    email_service.send_invitation_email(inv.email, link)
+    inv.email_sent = email_service.send_invitation_email(inv.email, link)
     inv.invite_link = link
     return inv

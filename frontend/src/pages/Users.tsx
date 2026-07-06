@@ -10,6 +10,7 @@ export default function Users() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [copied, setCopied] = useState<number | null>(null);
 
   const load = async () => {
@@ -25,13 +26,20 @@ export default function Users() {
     load();
   }, []);
 
+  const noticeFor = (inv: Invitation) =>
+    inv.email_sent
+      ? `Invitación enviada por email a ${inv.email}.`
+      : `Invitación creada, pero el email no se pudo enviar (SMTP no configurado). Usa «Copiar enlace».`;
+
   const invite = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     try {
-      await api.post('/invitations', { email, role });
+      const { data } = await api.post<Invitation>('/invitations', { email, role });
       setEmail('');
       setRole('user');
+      setNotice(noticeFor(data));
       await load();
     } catch (err: any) {
       setError(err.response?.data?.detail ?? 'No se pudo crear la invitación');
@@ -43,7 +51,9 @@ export default function Users() {
     await load();
   };
   const resend = async (id: number) => {
-    await api.post(`/invitations/${id}/resend`);
+    setNotice('');
+    const { data } = await api.post<Invitation>(`/invitations/${id}/resend`);
+    setNotice(noticeFor(data));
     await load();
   };
   const copy = (inv: Invitation) => {
@@ -77,6 +87,7 @@ export default function Users() {
       <h1 className="mb-4 text-2xl font-bold text-gray-800">Usuarios e invitaciones</h1>
 
       {error && <div className="mb-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+      {notice && <div className="mb-4 rounded bg-blue-50 px-3 py-2 text-sm text-blue-800">{notice}</div>}
 
       {/* Invitar */}
       <form onSubmit={invite} className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">

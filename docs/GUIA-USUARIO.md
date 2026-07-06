@@ -42,35 +42,14 @@ Ahora en Fracdrop:
 
 ## Paso 3 · Conecta tu Dropbox
 
-⚠️ **Este es el paso con más truco. Léelo con calma.**
+Es solo un botón:
 
-Necesitas un **token de acceso** de una app de Dropbox de tipo **“Full Dropbox”**
-(para poder elegir tus carpetas ya existentes).
+1. Ve a **Perfil**.
+2. Pulsa **Conectar con Dropbox**.
+3. En la ventana de Dropbox, pulsa **Permitir** para autorizar.
+4. Vuelves a la app con Dropbox **conectado**.
 
-1. Entra en https://www.dropbox.com/developers/apps/create
-2. **Choose an API:** elige **Scoped access**.
-3. **Choose the type of access you need:** elige **Full Dropbox**
-   ⚠️ (NO “App folder”, o solo verá una carpeta suya y no tus carpetas reales).
-4. Ponle un nombre cualquiera (ej. `fracdrop-mio`) y pulsa **Create app**.
-5. Ve a la pestaña **Permissions** y **marca** estas casillas:
-   - `files.metadata.read`
-   - `files.content.read`
-   - `files.content.write`
-6. Baja del todo y pulsa **Submit** para **guardar** los permisos.
-   👉 Truco: recarga la página (F5). Si las casillas **siguen marcadas**, se
-   guardó bien.
-7. **Ahora** (y no antes) ve a la pestaña **Settings** → sección
-   **OAuth 2 → Generated access token** → pulsa **Generate**.
-8. Copia ese token (es largo).
-
-> ❗ El orden importa: primero **Submit** de los permisos, y **después**
-> **Generate** del token. Si generas el token antes, no tendrá permisos y no
-> funcionará.
-
-Ahora en Fracdrop:
-
-9. Ve a **Perfil** → tarjeta **Dropbox** → pega el token → **Guardar** →
-   **Probar conexión** → debe salir ✅.
+La conexión es **permanente**: no caduca y no tendrás que volver a hacer nada.
 
 ---
 

@@ -42,7 +42,10 @@ Ahora en Fracdrop:
 
 ## Paso 3 · Conecta tu Dropbox
 
-Es solo un botón:
+¿No tienes cuenta de Dropbox? Créala aquí:
+https://www.dropbox.com/referrals/AAC-HbKpvUuTNv4Nkqtcmlu5cTnlY5e2LFM?src=global9
+
+Una vez la tengas, es solo un botón:
 
 1. Ve a **Perfil**.
 2. Pulsa **Conectar con Dropbox**.

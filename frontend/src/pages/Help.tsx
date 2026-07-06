@@ -79,7 +79,14 @@ export default function Help() {
       </Section>
 
       <Section n={4} title="Conecta tu Dropbox">
-        <p>Es solo un botón:</p>
+        <p className="text-gray-500">
+          ¿No tienes cuenta de Dropbox? Créala aquí:{' '}
+          <Ext href="https://www.dropbox.com/referrals/AAC-HbKpvUuTNv4Nkqtcmlu5cTnlY5e2LFM?src=global9">
+            crear cuenta de Dropbox
+          </Ext>
+          .
+        </p>
+        <p>Una vez la tengas, es solo un botón:</p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Ve a <strong>Perfil</strong>.</li>
           <li>Pulsa <strong>Conectar con Dropbox</strong>.</li>

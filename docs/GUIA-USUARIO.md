@@ -71,7 +71,10 @@ Cómo crear un filtro en Gmail:
 2. Pulsa **Crear un filtro nuevo**.
 3. Define el criterio (ej. *De: proveedor@ejemplo.com*, o palabras del asunto) → **Crear filtro**.
 4. Marca **Aplicar la etiqueta** y elige o crea una etiqueta (ej. “Facturas”).
-5. Repite con cada grupo de mensajes que quieras separar.
+5. Para etiquetar también los correos **antiguos**, marca **“Aplicar el filtro
+   también a las conversaciones que cumplan estos criterios”** antes de crear el
+   filtro. Si no, solo se etiquetarán los correos nuevos.
+6. Repite con cada grupo de mensajes que quieras separar.
 
 ## Paso 5 · Elige qué etiquetas vigilar en Fracdrop
 

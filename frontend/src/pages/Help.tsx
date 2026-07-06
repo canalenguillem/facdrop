@@ -58,6 +58,11 @@ export default function Help() {
           <li>Pulsa <strong>Crear un filtro nuevo</strong>.</li>
           <li>Define el criterio (ej. <em>De: proveedor@ejemplo.com</em>) → <strong>Crear filtro</strong>.</li>
           <li>Marca <strong>Aplicar la etiqueta</strong> y elige o crea una etiqueta.</li>
+          <li>
+            Para que los correos <strong>antiguos</strong> también reciban la etiqueta, marca{' '}
+            <strong>«Aplicar el filtro también a las conversaciones que cumplan estos criterios»</strong>
+            antes de crear el filtro. Si no, solo se etiquetarán los correos nuevos.
+          </li>
           <li>Repite con cada grupo de mensajes que quieras separar.</li>
         </ol>
       </Section>
